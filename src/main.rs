@@ -46,6 +46,12 @@ struct CSVFile {
     cols: usize,
 }
 
+impl CSVFile {
+  pub fn replace(&mut self, row: usize, col: usize, data: String) {
+    self.data[row][col] = data;
+  }
+}
+
 pub trait CSVFileReader {
     fn read(&mut self, file_path: PathBuf) -> Result<(), Error>;
 }
@@ -55,7 +61,16 @@ impl CSVFileReader for CSVFile {
         let file = File::open(file_path)?;
         let buff = BufReader::new(file);
 
-        for (index, line) in buff.lines().enumerate() {}
+        let mut data: Vec<Vec<String>> = Vec::new();
+
+        for (index, line) in buff.lines().enumerate() {
+          let cols = line.split(",").collect::<Vec<String>>();
+          data.push(cols);
+        }
+
+        self.data = data;
+        self.rows = data.len();
+        self.cols = data[0].len();
 
         Ok(())
     }
@@ -71,7 +86,9 @@ fn main() {
 
     // match and execute command
     match args.command {
-        Command::Display => println!("--Display CSVFile--"),
-        Command::Replace { row, col, data } => println!("--Replace and write to file--"),
+        Command::Display => println!("{:?}", csv),
+        Command::Replace { row, col, data } => {
+          csv.replace(row, col, data);
+        },
     }
 }
